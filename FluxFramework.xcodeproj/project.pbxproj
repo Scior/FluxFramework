@@ -10,6 +10,7 @@
 		6BE873A12377DEE200E8F602 /* FluxFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BE873972377DEE100E8F602 /* FluxFramework.framework */; };
 		6BE873A62377DEE200E8F602 /* FluxFrameworkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE873A52377DEE200E8F602 /* FluxFrameworkTests.swift */; };
 		6BE873A82377DEE200E8F602 /* FluxFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BE8739A2377DEE100E8F602 /* FluxFramework.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6BE873B22377DF7A00E8F602 /* FluxFramework.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE873B12377DF7A00E8F602 /* FluxFramework.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +30,7 @@
 		6BE873A02377DEE200E8F602 /* FluxFrameworkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FluxFrameworkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6BE873A52377DEE200E8F602 /* FluxFrameworkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxFrameworkTests.swift; sourceTree = "<group>"; };
 		6BE873A72377DEE200E8F602 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6BE873B12377DF7A00E8F602 /* FluxFramework.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxFramework.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				6BE8739A2377DEE100E8F602 /* FluxFramework.h */,
+				6BE873B12377DF7A00E8F602 /* FluxFramework.swift */,
 				6BE8739B2377DEE100E8F602 /* Info.plist */,
 			);
 			path = FluxFramework;
@@ -148,6 +151,7 @@
 				TargetAttributes = {
 					6BE873962377DEE100E8F602 = {
 						CreatedOnToolsVersion = 11.1;
+						LastSwiftMigration = 1110;
 					};
 					6BE8739F2377DEE200E8F602 = {
 						CreatedOnToolsVersion = 11.1;
@@ -195,6 +199,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6BE873B22377DF7A00E8F602 /* FluxFramework.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -340,6 +345,7 @@
 		6BE873AC2377DEE200E8F602 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = TE5VXS8N2M;
@@ -357,6 +363,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.flyingalpaca.FluxFramework;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -365,6 +372,7 @@
 		6BE873AD2377DEE200E8F602 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = TE5VXS8N2M;
@@ -390,6 +398,7 @@
 		6BE873AF2377DEE200E8F602 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = TE5VXS8N2M;
 				INFOPLIST_FILE = FluxFrameworkTests/Info.plist;
@@ -408,6 +417,7 @@
 		6BE873B02377DEE200E8F602 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = TE5VXS8N2M;
 				INFOPLIST_FILE = FluxFrameworkTests/Info.plist;
