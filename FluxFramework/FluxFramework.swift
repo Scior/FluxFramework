@@ -15,50 +15,48 @@ protocol FluxActionConverter {
     associatedtype Action: FluxAction
     associatedtype Dependency
     associatedtype Event: FluxEvent
-    static func convert(event: Event, dependency: Dependency) -> Action
+    static func convert(event: Event, dependency: Dependency, actionHandler: @escaping (Action) -> Void)
 }
 
 final class FluxActionCreator<Converter: FluxActionConverter> {
-    enum QueueType {
-        case concurrent
-        case serial
+    enum ExecutionOrder {
+        case async
+        case await
     }
     
     private let dependency: Converter.Dependency
     private let dispatcher: FluxDispatcher
     
-    private let concurrentQueue: DispatchQueue
-    private let serialQueue = DispatchQueue(label: "com.private.actioncreator.flux", qos: .userInteractive)
+    private let processingQueue: DispatchQueue
     
     init(
         dependency: Converter.Dependency,
         dispatcher: FluxDispatcher = FluxSharedDispatcher.shared,
-        concurrentQueue: DispatchQueue = DispatchQueue.global(qos: .userInteractive)
+        processingQueue: DispatchQueue = DispatchQueue.global(qos: .userInteractive)
     ) {
         self.dependency = dependency
         self.dispatcher = dispatcher
-        self.concurrentQueue = concurrentQueue
+        self.processingQueue = processingQueue
     }
     
-    func fire(_ event: Converter.Event, queueType: QueueType = .concurrent) {
-        let queue: DispatchQueue = {
-            switch queueType {
-            case .concurrent:
-                return concurrentQueue
-            case .serial:
-                return serialQueue
+    func fire(_ event: Converter.Event, executionOrder: ExecutionOrder = .async) {
+        switch executionOrder {
+        case .async:
+            processingQueue.async { [weak self] in
+                guard let self = self else { return }
+                Converter.convert(event: event, dependency: self.dependency, actionHandler: self.dispatcher.dispatch)
             }
-        }()
-        
-        queue.async { [weak self] in
-            guard let self = self else { return }
-            self.dispatcher.dispatch(action: Converter.convert(event: event, dependency: self.dependency))
+        case .await:
+            DispatchQueue(label: "com.\(UUID().uuidString).actioncreator.flux", qos: .userInteractive).sync { [weak self] in
+               guard let self = self else { return }
+               Converter.convert(event: event, dependency: self.dependency, actionHandler: self.dispatcher.dispatch)
+            }
         }
     }
     
-    func fire(_ events: [Converter.Event], queueType: QueueType = .concurrent) {
+    func fire(_ events: [Converter.Event], executionOrder: ExecutionOrder = .async) {
         for event in events {
-            fire(event, queueType: queueType)
+            fire(event, executionOrder: executionOrder)
         }
     }
 }
@@ -74,34 +72,27 @@ fileprivate final class FluxSharedDispatcher: FluxDispatcher {
     static let shared = FluxSharedDispatcher()
     
     private var observingStores: [Identifier: (FluxAction) -> Void]
-    private let processingQueue = DispatchQueue(label: "com.private.dispatcher.flux", qos: .userInteractive)
+    private let lock: NSRecursiveLock
     
     init() {
         observingStores = [:]
+        lock = NSRecursiveLock()
     }
     
     func subscribe(for identifier: Identifier, handler: @escaping (FluxAction) -> Void) {
-        processingQueue.sync {
-            observingStores[identifier] = handler
-        }
+        observingStores[identifier] = handler
     }
     
     func unsubscribe(for identifier: Identifier) {
-        processingQueue.sync {
-            _ = observingStores.removeValue(forKey: identifier)
-        }
+        _ = observingStores.removeValue(forKey: identifier)
     }
     
     func dispatch(action: FluxAction) {
-        processingQueue.sync {
-            let group = DispatchGroup()
-            for store in observingStores.values {
-                DispatchQueue.main.async(group: group) {
-                    store(action)
-                }
-            }
-            
-            group.wait()
+        defer { lock.unlock() }
+        lock.lock()
+        
+        for store in observingStores.values {
+            store(action)
         }
     }
 }
@@ -148,17 +139,17 @@ final class FluxStore<State: FluxState> {
         let identifier = UUID().uuidString
         observers[identifier] = handler
         
-        return FluxSubscription { [weak self] in
+        return FluxSubscription(unsubscribeHandler: { [weak self] in
             self?.observers.removeValue(forKey: identifier)
-        }
+        })
     }
 }
 
 struct FluxSubscription {
     private let unsubscribeHandler: () -> Void
     
-    init(handler: @escaping () -> Void) {
-        unsubscribeHandler = handler
+    init(unsubscribeHandler: @escaping () -> Void) {
+        self.unsubscribeHandler = unsubscribeHandler
     }
     
     func unsubscribe() {
