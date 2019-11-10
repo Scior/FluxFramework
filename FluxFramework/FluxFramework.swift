@@ -19,11 +19,6 @@ protocol FluxActionConverter {
 }
 
 final class FluxActionCreator<Converter: FluxActionConverter> {
-    enum ExecutionOrder {
-        case async
-        case await
-    }
-    
     private let dependency: Converter.Dependency
     private let dispatcher: FluxDispatcher
     
@@ -39,24 +34,16 @@ final class FluxActionCreator<Converter: FluxActionConverter> {
         self.processingQueue = processingQueue
     }
     
-    func fire(_ event: Converter.Event, executionOrder: ExecutionOrder = .async) {
-        switch executionOrder {
-        case .async:
-            processingQueue.async { [weak self] in
-                guard let self = self else { return }
-                Converter.convert(event: event, dependency: self.dependency, actionHandler: self.dispatcher.dispatch)
-            }
-        case .await:
-            DispatchQueue(label: "com.\(UUID().uuidString).actioncreator.flux", qos: .userInteractive).sync { [weak self] in
-               guard let self = self else { return }
-               Converter.convert(event: event, dependency: self.dependency, actionHandler: self.dispatcher.dispatch)
-            }
+    func fire(_ event: Converter.Event) {
+        processingQueue.async { [weak self] in
+            guard let self = self else { return }
+            Converter.convert(event: event, dependency: self.dependency, actionHandler: self.dispatcher.dispatch)
         }
     }
     
-    func fire(_ events: [Converter.Event], executionOrder: ExecutionOrder = .async) {
+    func fire(_ events: [Converter.Event]) {
         for event in events {
-            fire(event, executionOrder: executionOrder)
+            fire(event)
         }
     }
 }
