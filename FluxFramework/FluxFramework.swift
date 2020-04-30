@@ -8,47 +8,47 @@
 
 import Foundation
 
-protocol FluxAction {}
-protocol FluxEvent {}
+public protocol FluxAction {}
+public protocol FluxEvent {}
 
-protocol FluxActionConverter {
+public protocol FluxActionConverter {
     associatedtype Action: FluxAction
     associatedtype Dependency
     associatedtype Event: FluxEvent
     static func convert(event: Event, dependency: Dependency, actionHandler: @escaping (Action) -> Void)
 }
 
-final class FluxActionCreator<Converter: FluxActionConverter> {
+public final class FluxActionCreator<Converter: FluxActionConverter> {
     private let dependency: Converter.Dependency
     private let dispatcher: FluxDispatcher
     
     private let processingQueue: DispatchQueue
     
-    init(
+    public init(
         dependency: Converter.Dependency,
-        dispatcher: FluxDispatcher = FluxSharedDispatcher.shared,
-        processingQueue: DispatchQueue = DispatchQueue.global(qos: .userInteractive)
+        dispatcher: FluxDispatcher? = nil,
+        processingQueue: DispatchQueue = DispatchQueue.main
     ) {
         self.dependency = dependency
-        self.dispatcher = dispatcher
+        self.dispatcher = dispatcher ?? FluxSharedDispatcher.shared
         self.processingQueue = processingQueue
     }
     
-    func fire(_ event: Converter.Event) {
-        processingQueue.async { [weak self] in
+    public func fire(_ event: Converter.Event, executionQueue: DispatchQueue? = nil) {
+        (executionQueue ?? processingQueue).async { [weak self] in
             guard let self = self else { return }
             Converter.convert(event: event, dependency: self.dependency, actionHandler: self.dispatcher.dispatch)
         }
     }
     
-    func fire(_ events: [Converter.Event]) {
+    public func fire(_ events: [Converter.Event]) {
         for event in events {
             fire(event)
         }
     }
 }
 
-protocol FluxDispatcher {
+public protocol FluxDispatcher {
     typealias Identifier = String
     func subscribe(for identifier: Identifier, handler: @escaping (FluxAction) -> Void)
     func unsubscribe(for identifier: Identifier)
@@ -84,45 +84,44 @@ fileprivate final class FluxSharedDispatcher: FluxDispatcher {
     }
 }
 
-protocol FluxState {
+public protocol FluxState {
     associatedtype Action: FluxAction
-    static var identifier: FluxDispatcher.Identifier { get }
+    var identifier: FluxDispatcher.Identifier { get }
     
     init()
     
     mutating func handle(action: Action) -> Self?
 }
 
-final class FluxStore<State: FluxState> {
-    typealias Identifier = String
+public final class FluxStore<State: FluxState> {
+    public typealias Identifier = String
     
     private(set) var state: State
     private let dispatcher: FluxDispatcher
     private var observers: [Identifier: (State) -> Void]
     
-    init(dispatcher: FluxDispatcher = FluxSharedDispatcher.shared) {
-        self.dispatcher = dispatcher
+    public init(dispatcher: FluxDispatcher? = nil) {
+        self.dispatcher = dispatcher ?? FluxSharedDispatcher.shared
         state = .init()
         observers = [:]
         
-        dispatcher.subscribe(for: State.identifier) { [weak self] action in
+        self.dispatcher.subscribe(for: state.identifier) { [weak self] action in
             guard let self = self else { return }
             guard let action = action as? State.Action else { return }
             
             if let state = self.state.handle(action: action) {
-                for observer in self.observers.values {
-                    observer(state)
-                }
+                self.state = state
+                self.observers.values.forEach { $0(state) }
             }
         }
     }
     
     deinit {
-        dispatcher.unsubscribe(for: State.identifier)
+        dispatcher.unsubscribe(for: state.identifier)
     }
     
     @discardableResult
-    func subscribe(handler: @escaping (State) -> Void) -> FluxSubscription {
+    public func subscribe(handler: @escaping (State) -> Void) -> FluxSubscription {
         let identifier = UUID().uuidString
         observers[identifier] = handler
         
@@ -132,14 +131,14 @@ final class FluxStore<State: FluxState> {
     }
 }
 
-struct FluxSubscription {
+public struct FluxSubscription {
     private let unsubscribeHandler: () -> Void
     
-    init(unsubscribeHandler: @escaping () -> Void) {
+    public init(unsubscribeHandler: @escaping () -> Void) {
         self.unsubscribeHandler = unsubscribeHandler
     }
     
-    func unsubscribe() {
+    public func unsubscribe() {
         unsubscribeHandler()
     }
 }
