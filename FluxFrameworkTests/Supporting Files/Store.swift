@@ -12,7 +12,7 @@ import Foundation
 struct TestState: FluxState {
     typealias Action = TestAction
     
-    static let identifier = "test_state"
+    let identifier = "test_state"
     private(set) var actions: [Action]
 
     init() {

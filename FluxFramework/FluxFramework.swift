@@ -64,10 +64,12 @@ public final class FluxActionCreator<Converter: FluxActionConverter> {
     }
     
     /// Triggers events to dispatch actions.
-    /// - Parameter events: Events to trigger.
-    public func fire(_ events: [Converter.Event]) {
+    /// - Parameters:
+    ///   - events: Events to trigger.
+    ///   - executionQueue: The dispatch queue to process conversions. The default queue is that was set in initializer.
+    public func fire(_ events: [Converter.Event], executionQueue: DispatchQueue? = nil) {
         for event in events {
-            fire(event)
+            fire(event, executionQueue: executionQueue)
         }
     }
 }
