@@ -6,8 +6,6 @@
 //  Copyright © 2019 Suita Fujino. All rights reserved.
 //
 
-import Foundation
-
 /// Represents an action to dispatch, which is converted from an event(`FluxEvent`).
 public protocol FluxAction {}
 /// Represents an event to trigger an action(`FluxAction`).
@@ -145,7 +143,7 @@ public final class FluxStore<State: FluxState> {
     private let dispatcher: FluxDispatcher
     private var observers: [Identifier: (State) -> Void]
     
-    /// If you do not want to use the shared dispatcher, give some customized dispatcher.
+    /// NOTE: If you do not want to use the shared dispatcher, give some customized one.
     /// - Parameter dispatcher: The customized dispatcher.
     public init(dispatcher: FluxDispatcher? = nil) {
         self.dispatcher = dispatcher ?? FluxSharedDispatcher.shared
