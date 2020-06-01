@@ -1,5 +1,8 @@
 # FluxFramework
 
+[![version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Scior/FluxFramework)
+[![Swift: 5.2.2](https://img.shields.io/badge/Swift-5.2.2-green.svg)](https://swift.org/)
+[![Carthage](https://img.shields.io/badge/Carthage-compatible-green.svg)](https://github.com/Carthage/Carthage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ----
@@ -27,7 +30,24 @@ Inspired by:
 
 ## Installation
 
-In preparation
+### Carthage
+
+Add the following line to `Cartfile`:
+
+```
+github "Scior/FluxFramework" ~> 0.1
+```
+
+### CocoaPods
+
+Add the following line to `Podfile`:
+
+```
+target 'YOUR_TARGET_NAME' do
+    pod 'FluxFramework', '~> 0.1'
+```
+
+### CocoaPods
 
 ## Usage
 
